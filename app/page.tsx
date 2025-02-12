@@ -1,101 +1,303 @@
-import Image from "next/image";
+"use client"
+import AddCategory from "@/components/AddCategory";
+import SimpleDialog from "@/components/AddCategory";
+import { Button } from "@mui/material";
+import { useState, useRef, useEffect } from "react";
+// import "./IndustrySelector.css"; // Import the CSS file
 
-export default function Home() {
+export default function IndustrySelector() {
+  const [isOpen, setIsOpen] = useState(false);
+  const [isOpenSubCat, setIsOpenSubCat] = useState(false);
+  const [addCategory, setaddCategory] = useState(false)
+  const [search, setSearch] = useState("");
+  const [selectedIndustry, setSelectedIndustry] = useState("");
+  const [highlightIndex, setHighlightIndex] = useState(0);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+  const searchInputRef = useRef(null);
+  const [categories, setCategories] = useState<any[]>([]);
+
+  useEffect(() => {
+    const fetchCategories = async () => {      
+      try {
+        const response = await fetch("api/proxy", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            conditions: [
+              {
+                field: "feature_name",
+                value: "Product Categories",
+                search_type: "exact",
+              },
+            ],
+            combination_type: "and",
+            dataset: "feature_data",
+            app_secret: "38475203487kwsdjfvb1023897yfwbhekrfj",
+          }),
+        });
+        if (!response.ok) {          
+          throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+        const data = await response.json();        
+        setCategories(data || []); // Adjust based on API response
+      } catch (err) {
+        // setError(err.message);
+      } finally {
+        // setLoading(false);
+      }
+    };
+    fetchCategories();
+  }, []);
+
+  if (categories.length > 0) {
+    console.log(categories[categories.length - 1].record_id || "", "categories");
+  }
+  
+
+  // Filter industries based on search input
+  const tempfilteredIndustries = categories.flatMap((category: any) =>
+    category.feature_data?.record_data
+      .filter((record: any) => record.record_label === "category_name")
+  );
+
+  const filteredIndustries = tempfilteredIndustries.map((ele:any) => ele.record_value_text).filter((industry) =>
+    industry.toLowerCase().includes(search.toLowerCase())
+  )
+  ;
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    function handleClickOutside(event:any) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsOpen(false);
+        setIsOpenSubCat(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  console.log(filteredIndustries,"filteredIndustries");
+
+
+  // Handle key navigation (Arrow Up, Arrow Down, Enter)
+  const handleKeyDown = (e:any) => {
+    console.log("handleKeyDown start",e.key);
+    
+    
+    if (e.key === "ArrowDown") {
+      setHighlightIndex((prev) => (prev + 1) % filteredIndustries.length);
+    } else if (e.key === "ArrowUp") {
+      setHighlightIndex((prev) =>
+        prev === 0 ? filteredIndustries.length - 1 : prev - 1
+      );
+    } else if (e.key === "Enter") {
+      if (filteredIndustries.length > 0) {
+        setSelectedIndustry(filteredIndustries[highlightIndex]);
+        setIsOpen(false);
+        setSearch("");
+      }
+    }
+  };
+
+  console.log(isOpen,"isOpen");
+
+  const handleSelectCategory = (industry:any) => {
+    console.log(isOpen,"isOpen handleSelectCategory start"); 
+    setIsOpen(false);
+    setSelectedIndustry(industry);
+   
+    setSearch("");
+    console.log(isOpen,"isOpen isOpen handleSelectCategory end");
+  }  
+  
+
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
-
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+    <div className="container">
+      {/* Industry Selector */}
+      <div style={{position:"relative"}}>
+      <div  className="dropdown-input"
+        onClick={() => setIsOpen(true)}
+      >
+        <span className={selectedIndustry ? "selected-text" : "placeholder-text"}>
+          {selectedIndustry || "Select your category"}
+        </span>
+        <span className="arrow">&#9662;</span>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+
+      {/* Dropdown List */}
+      {isOpen && (
+        <div ref={dropdownRef} className="dropdown-list">
+          {/* Search Input */}
+          <div className="search-box">
+            <input
+              ref={searchInputRef}
+              type="text"
+              className="search-input"
+              placeholder="Search industry..."
+              value={search}
+              onChange={(e) => {
+                setSearch(e.target.value);
+                setHighlightIndex(0); // Reset highlight index on search change
+              }}
+              onKeyDown={handleKeyDown}
+              onClick={(e) => e.stopPropagation()} // Prevent dropdown from closing
+            />
+          </div>
+
+          {/* Industry List */}
+          <ul className="industry-list">
+            {filteredIndustries.map((industry, index) => (
+              <li
+                key={industry}
+                className={`industry-item ${
+                  index === highlightIndex ? "highlighted" : ""
+                }`}
+
+                                onClick={() => handleSelectCategory(industry)}
+              >
+                {industry}
+              </li>
+            ))}
+            <li style={{display:"flex",justifyContent:"center",marginBottom:"5px"}}>
+              <Button onClick={() => setaddCategory(true)} variant="contained" size="small" sx={{m:"5px auto"}}>Add Category</Button>
+            </li>
+          </ul>
+        </div>
+      )}
+    </div>
+    
+    <AddCategory
+        open={addCategory}
+        setOpen={setaddCategory}
+        lastRecordId={categories.length > 0 ? categories[categories.length - 1].record_id : ""}
+      />    
     </div>
   );
 }
+
+
+
+
+
+
+
+// import { useState, useRef, useEffect } from "react";
+// export default function IndustrySelector() {
+//   const [isOpen, setIsOpen] = useState(false);
+//   const [search, setSearch] = useState("");
+//   const [selectedIndustry, setSelectedIndustry] = useState("");
+//   const [highlightIndex, setHighlightIndex] = useState(0);
+//   const dropdownRef = useRef<HTMLDivElement>(null);
+//   const searchInputRef = useRef(null);
+
+//   const industries = [
+//     "E-commerce",
+//     "Healthcare",
+//     "Finance",
+//     "Education",
+//     "Real Estate",
+//     "Entertainment",
+//     "Travel",
+//     "Food & Beverage",
+//   ];
+
+//   console.log(isOpen,"isOpen");
+  
+
+//   // Filter industries based on search input
+//   const filteredIndustries = industries.filter((industry) =>
+//     industry.toLowerCase().includes(search.toLowerCase())
+//   );
+
+//   // Close dropdown when clicking outside
+//   useEffect(() => {
+//     function handleClickOutside(event:any) {
+//       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+//         setIsOpen(false);
+//       }
+//     }
+//     document.addEventListener("mousedown", handleClickOutside);
+//     return () => document.removeEventListener("mousedown", handleClickOutside);
+//   }, []);
+
+//   // console.log(filteredIndustries,"filteredIndustries");
+  
+
+//   // Handle key navigation (Arrow Up, Arrow Down, Enter)
+//   const handleKeyDown = (e:any) => {
+//     console.log(filteredIndustries,"handleKeyDown start",e.key);
+    
+//     if (e.key === "ArrowDown") {
+//       setHighlightIndex((prev) => (prev + 1) % filteredIndustries.length);
+//     } else if (e.key === "ArrowUp") {
+//       setHighlightIndex((prev) =>
+//         prev === 0 ? filteredIndustries.length - 1 : prev - 1
+//       );
+//     } else if (e.key === "Enter") {
+//       if (filteredIndustries.length > 0) {
+//         setSelectedIndustry(filteredIndustries[highlightIndex]);
+//         setIsOpen(false);
+//         setSearch("");
+//       }
+//     }
+//   };
+
+//   return (
+//     <div className="container">
+//       {/* Industry Selector */}
+//       <div
+//         className="dropdown-input"
+//         onClick={() => setIsOpen(true)}
+//       >
+//         <span className={selectedIndustry ? "selected-text" : "placeholder-text"}>
+//           {selectedIndustry || "Select your industry"}
+//         </span>
+//         <span className="arrow">&#9662;</span>
+//       </div>
+
+//       {/* Dropdown List */}
+//       {isOpen && (
+//         <div ref={dropdownRef} className="dropdown-list">
+//           {/* Search Input */}
+//           <div className="search-box">
+//             <input
+//               ref={searchInputRef}
+//               type="text"
+//               className="search-input"
+//               placeholder="Search industry..."
+//               value={search}
+//               onChange={(e) => {
+//                 setSearch(e.target.value);
+//                 setHighlightIndex(0); // Reset highlight index on search change
+//               }}
+//               onKeyDown={handleKeyDown}
+//               onClick={(e) => e.stopPropagation()} // Prevent dropdown from closing
+//             />
+//           </div>
+
+//           {/* Industry List */}
+//           <ul className="industry-list">
+//             {filteredIndustries.map((industry, index) => (
+//               <li
+//                 key={industry}
+//                 className={`industry-item ${
+//                   index === highlightIndex ? "highlighted" : ""
+//                 }`}
+//                 onClick={() => {
+//                   setSelectedIndustry(industry);
+//                   setIsOpen(false);
+//                   setSearch("");
+//                 }}
+//               >
+//                 {industry}
+//               </li>
+//             ))}
+//           </ul>
+//         </div>
+//       )}
+//     </div>
+//   );
+// }
