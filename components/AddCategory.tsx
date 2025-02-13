@@ -6,8 +6,6 @@ export default function AddCategory({open,setOpen,lastRecordId}:any) {
 //   const [open, setOpen] = React.useState(false);
 const [error, setError] = React.useState("")
 
-console.log(lastRecordId ,"lastRecordId");
-
 function incrementCategory(category:string) {
   const match = category.match(/(\D+)(\d+)/);
   if (!match) return category; 
@@ -21,7 +19,6 @@ function incrementCategory(category:string) {
 
 
 const [search, setSearch] = React.useState("");
-
   const handleClose = () => {
     setOpen(false);
   };
@@ -72,9 +69,7 @@ const [search, setSearch] = React.useState("");
             if (!response.ok) {          
               throw new Error(`HTTP error! Status: ${response.status}`);
             }
-            const data = await response.json();   
-            console.log("data....",data);
-                 
+            const data = await response.json();                    
           } catch (err) {
             // setError(err.message);
           } finally {
@@ -101,7 +96,7 @@ const [search, setSearch] = React.useState("");
               placeholder="Search industry..."
               value={search}
               onChange={(e) => {
-                setSearch(e.target.value);              }}
+                setSearch(e.target.value);}}
             />
             <Typography sx={{color:"red",mt:1,fontSize:"16px"}}>{error}</Typography>
             <Box sx={{display:"flex",justifyContent:"center",flexDirection:"column",gap:2}}>
