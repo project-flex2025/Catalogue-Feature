@@ -23,7 +23,8 @@ body {
 .container {
   /* position: relative; */
   width: 80%;
-  margin: 50px auto;
+  /* margin: 50px auto; */
+  margin: 10px 25px
 }
 
 /* Dropdown Input */

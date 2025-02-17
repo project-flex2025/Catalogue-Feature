@@ -2,9 +2,19 @@ import { Box, Button, Typography } from "@mui/material";
 import Dialog from "@mui/material/Dialog";
 import * as React from "react";
 
-export default function AddSubCategory({ open, setOpen, lastRecordId,categoryId }: any) {
-  //   const [open, setOpen] = React.useState(false);
-  const [error, setError] = React.useState("");
+export default function AddSubCategory({
+  open,
+  setOpen,
+  lastRecordId,
+  categoryId,
+  searchVal
+}: any) {
+  const [error, setError] = React.useState("");    
+
+  React.useEffect(() => {
+      setSearch(searchVal);
+    }, [searchVal]);    
+  
 
   function incrementCategory(category: string) {
     const match = category.match(/(\D+)(\d+)/);
@@ -16,9 +26,7 @@ export default function AddSubCategory({ open, setOpen, lastRecordId,categoryId 
     return `${prefix}${paddedNumber}`;
   }
 
-  console.log(lastRecordId, "lastRecordId",categoryId);
-  
-  const [search, setSearch] = React.useState("");
+  const [search, setSearch] = React.useState(searchVal);
   const handleClose = () => {
     setOpen(false);
   };
@@ -30,8 +38,13 @@ export default function AddSubCategory({ open, setOpen, lastRecordId,categoryId 
 
   const handleSubmit = async () => {
     if (search === "") {
-      setError("Please enter a category name");
+      setError("Please enter a subcategory name");
       return;
+    }
+
+    if(!categoryId){
+  alert("Please select a category");
+  return;
     }
     try {
       const response = await fetch("api/create", {
@@ -42,7 +55,7 @@ export default function AddSubCategory({ open, setOpen, lastRecordId,categoryId 
         body: JSON.stringify({
           data: [
             {
-              record_id: `${incrementCategory(lastRecordId)}`,
+              record_id: `${incrementCategory(lastRecordId)}1`,
               feature_name: "Products",
               added_by: "flex_admin",
               record_status: "active",
@@ -56,9 +69,9 @@ export default function AddSubCategory({ open, setOpen, lastRecordId,categoryId 
                   },
                 ],
               },
-              "more_data":{
-                "categories": [categoryId]
-              }
+              more_data: {
+                categories: [`${categoryId}`],
+              },
             },
           ],
           dataset: "feature_data",
@@ -68,7 +81,7 @@ export default function AddSubCategory({ open, setOpen, lastRecordId,categoryId 
       if (!response.ok) {
         throw new Error(`HTTP error! Status: ${response.status}`);
       }
-      const data = await response.json();
+      const data = await response.json();            
     } catch (err) {
       // setError(err.message);
     } finally {

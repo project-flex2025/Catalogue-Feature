@@ -10,7 +10,11 @@ const nextConfig: NextConfig = {
       {
         source: "/api/create",
         destination:"http://183.82.7.208:3002/anyapp/create/"
-      }
+      },
+      {
+        source: "/api/update",
+        destination:"http://183.82.7.208:3002/anyapp/update/"
+      },
     ];
   },
   /* config options here */

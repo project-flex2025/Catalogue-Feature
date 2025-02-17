@@ -1,0 +1,35 @@
+[
+  {
+    "record_id": "dynamic_001",
+    "feature_name": "Products",
+    "added_by": "flex_admin",
+    "record_status": "active",
+    "created_on_date": "2025-02-17",
+    "feature_data": {
+      "record_data": [
+        {
+          "record_label": "Product Name",
+          "record_type": "type_text",
+          "record_value_text": "Mi"
+        },
+        {
+          "record_label": "Description",
+          "record_type": "type_text",
+          "record_value_text": "A product from Oppo"
+        },
+        {
+          "record_label": "Price",
+          "record_type": "type_number",
+          "record_value_number": 1000
+        },
+        {
+          "record_label": "Stock Quantity",
+          "record_type": "type_number",
+          "record_value_number": 10
+        }
+      ]
+    },
+    "more_data": { "categories": ["cat_001"] },
+    "doc_position": 0
+  }
+]
